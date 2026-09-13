@@ -42,6 +42,8 @@ with app.app_context():
         db.session.bulk_save_objects(sample_items)
         db.session.commit()
 
+# --- Customer Storefront Routes ---
+
 @app.route('/')
 def storefront():
     selected_cat = request.args.get('category')
@@ -128,14 +130,40 @@ def checkout():
     session.pop('cart', None)
     return render_template('order_success.html', order=new_order)
 
+# --- Authentication & Admin Routes ---
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if username == 'admin' and password == 'Admin@123':
+            session['is_admin'] = True
+            return redirect(url_for('admin'))
+        else:
+            error = 'Invalid username or password'
+
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('is_admin', None)
+    return redirect(url_for('storefront'))
+
 @app.route('/admin')
-def admin_dashboard():
+def admin():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
     orders = Order.query.order_by(Order.created_at.desc()).all()
     products = Product.query.all()
     return render_template('admin.html', orders=orders, products=products)
 
 @app.route('/admin/add-product', methods=['POST'])
 def add_product():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
     name = request.form.get('name')
     category = request.form.get('category')
     unit = request.form.get('unit')
@@ -143,16 +171,29 @@ def add_product():
     new_item = Product(name=name, category=category, unit=unit, price=price)
     db.session.add(new_item)
     db.session.commit()
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('admin'))
 
 @app.route('/admin/order-status/<int:order_id>/<status>')
 def update_order_status(order_id, status):
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
     order = db.session.get(Order, order_id)
     if not order:
         abort(404)
     order.status = status
     db.session.commit()
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('admin'))
+
+@app.route('/admin/delete_order/<int:order_id>', methods=['POST'])
+def delete_order(order_id):
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+    order = db.session.get(Order, order_id)
+    if not order:
+        abort(404)
+    db.session.delete(order)
+    db.session.commit()
+    return redirect(url_for('admin'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

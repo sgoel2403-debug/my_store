@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Confirmed</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light text-center py-5">
+    <div class="container" style="max-width: 500px;">
+        <div class="card p-4 shadow-sm border-0">
+            <div class="text-success mb-3 fs-1">✅</div>
+            <h2 class="fw-bold">Order Placed!</h2>
+            <p class="text-muted">Order ID: #{{ order.id }}</p>
+            <hr>
+            <p class="text-start"><strong>Deliver to:</strong> {{ order.customer_name }} ({{ order.phone }})</p>
+            <p class="text-start"><strong>Address:</strong> {{ order.address }}</p>
+            <p class="text-start"><strong>Items:</strong> {{ order.order_items }}</p>
+            <p class="text-start"><strong>Payment Mode:</strong> {{ order.payment_method }}</p>
+            <h4 class="text-success fw-bold text-start">Amount Due: ₹{{ order.total_amount }}</h4>
+            <a href="/" class="btn btn-success mt-3 w-100">Order More</a>
+        </div>
+    </div>
+</body>
+</html>

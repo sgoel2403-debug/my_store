@@ -11,7 +11,10 @@
         <div class="container">
             <a class="navbar-brand fw-bold fs-4" href="/">🥬 FreshMart & Kitchen</a>
             <div class="d-flex gap-2">
-                <a href="/admin" class="btn btn-outline-light btn-sm align-self-center">Owner Admin</a>
+                {% if session.get('is_admin') %}
+                    <a href="/admin" class="btn btn-warning btn-sm align-self-center fw-semibold">⚙️ Owner Dashboard</a>
+                    <a href="/logout" class="btn btn-outline-light btn-sm align-self-center">Sign Out</a>
+                {% endif %}
                 <a href="/cart" class="btn btn-warning fw-semibold">🛒 Cart</a>
             </div>
         </div>

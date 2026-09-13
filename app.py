@@ -3,11 +3,15 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'super_secret_store_key'
+app.secret_key = 'super_secret_store_key_freshmart_2026'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///store.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+# ----------------------------------------------------
+# Database Models
+# ----------------------------------------------------
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,7 +46,9 @@ with app.app_context():
         db.session.bulk_save_objects(sample_items)
         db.session.commit()
 
-# --- Customer Storefront Routes ---
+# ----------------------------------------------------
+# Public Storefront & Cart Routes
+# ----------------------------------------------------
 
 @app.route('/')
 def storefront():
@@ -130,7 +136,9 @@ def checkout():
     session.pop('cart', None)
     return render_template('order_success.html', order=new_order)
 
-# --- Authentication & Admin Routes ---
+# ----------------------------------------------------
+# Owner Authentication & Dashboard Routes
+# ----------------------------------------------------
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -139,6 +147,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
+        # Admin credentials
         if username == 'admin' and password == 'Admin@123':
             session['is_admin'] = True
             return redirect(url_for('admin'))
@@ -156,7 +165,7 @@ def logout():
 def admin():
     if not session.get('is_admin'):
         return redirect(url_for('login'))
-    orders = Order.query.order_by(Order.created_at.desc()).all()
+    orders = Order.query.order_by(Order.id.desc()).all()
     products = Product.query.all()
     return render_template('admin.html', orders=orders, products=products)
 

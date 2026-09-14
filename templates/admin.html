@@ -2,144 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Store Management Panel</title>
+    <title>Owner Dashboard - FreshMart</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        .status-badge-Received { background-color: #0d6efd; }
-        .status-badge-Preparing { background-color: #ffc107; color: #000; }
-        .status-badge-Out-for-Delivery { background-color: #0dcaf0; color: #000; }
-        .status-badge-Completed { background-color: #198754; }
-    </style>
 </head>
-<body class="bg-light py-4">
-    <div class="container">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+<body class="bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark py-3">
+        <div class="container">
+            <span class="navbar-brand fw-bold">⚙️ FreshMart Owner Dashboard</span>
             <div>
-                <h2 class="fw-bold mb-0">🏪 Store Management Dashboard</h2>
-                <small class="text-muted">Manage live orders and grocery/food inventory</small>
+                <a href="/" class="btn btn-outline-light btn-sm me-2">View Store</a>
+                <a href="/logout" class="btn btn-danger btn-sm">Sign Out</a>
             </div>
-            <a href="/" class="btn btn-outline-success">← View Storefront</a>
         </div>
+    </nav>
 
-        <div class="row">
-            <!-- Left Column: Live Customer Orders -->
-            <div class="col-lg-8 mb-4">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold mb-0">📦 Live Customer Orders</h5>
-                        <span class="badge bg-secondary">{{ orders|length }} Total Orders</span>
-                    </div>
-                    <div class="card-body">
-                        {% if orders %}
+    <div class="container my-4">
+        <h3 class="fw-bold mb-3">Customer Orders</h3>
+        <div class="card shadow-sm border-0 mb-5">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#ID</th>
+                                <th>Customer</th>
+                                <th>Phone & Address</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {% for order in orders %}
-                            <div class="border rounded p-3 mb-3 bg-white shadow-sm">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <h6 class="fw-bold mb-1">
-                                            Order #{{ order.id }} &mdash; {{ order.customer_name }}
-                                        </h6>
-                                        <small class="text-muted">📞 {{ order.phone }} | 🕒 {{ order.created_at.strftime('%d %b, %I:%M %p') if order.created_at else 'Recent' }}</small>
-                                    </div>
-                                    <span class="badge px-2 py-1 fs-6 
-                                        {% if order.status == 'Received' %}bg-primary
-                                        {% elif order.status == 'Preparing' %}bg-warning text-dark
-                                        {% elif order.status == 'Out for Delivery' %}bg-info text-dark
-                                        {% elif order.status == 'Completed' %}bg-success
-                                        {% else %}bg-secondary{% endif %}">
+                            <tr>
+                                <td><strong>#{{ order.id }}</strong></td>
+                                <td>{{ order.customer_name }}</td>
+                                <td>
+                                    <small>{{ order.phone }}</small><br>
+                                    <small class="text-muted">{{ order.address }}</small>
+                                </td>
+                                <td><small>{{ order.order_items }}</small></td>
+                                <td class="fw-bold text-success">₹{{ order.total_amount }}</td>
+                                <td><span class="badge bg-secondary">{{ order.payment_method }}</span></td>
+                                <td>
+                                    <span class="badge {{ 'bg-warning text-dark' if order.status == 'Received' else ('bg-info text-dark' if order.status == 'Out for Delivery' else 'bg-success') }}">
                                         {{ order.status }}
                                     </span>
-                                </div>
-
-                                <p class="small text-muted mb-1">
-                                    <strong>📍 Address / Table:</strong> {{ order.address }}
-                                </p>
-                                <p class="small text-dark mb-2">
-                                    <strong>🛒 Items:</strong> {{ order.order_items }}
-                                </p>
-
-                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                                    <span class="fw-bold text-success">
-                                        Total: ₹{{ order.total_amount }} ({{ order.payment_method }})
-                                    </span>
-                                    
-                                    <!-- Order Status Buttons -->
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="/admin/order-status/{{ order.id }}/Preparing" class="btn btn-outline-warning">
-                                            ⏳ Preparing
-                                        </a>
-                                        <a href="/admin/order-status/{{ order.id }}/Out for Delivery" class="btn btn-outline-info">
-                                            🚚 Out for Delivery
-                                        </a>
-                                        <a href="/admin/order-status/{{ order.id }}/Completed" class="btn btn-outline-success">
-                                            ✅ Delivered
-                                        </a>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm mb-1">
+                                        <a href="/admin/order-status/{{ order.id }}/Out for Delivery" class="btn btn-outline-primary">Dispatch</a>
+                                        <a href="/admin/order-status/{{ order.id }}/Delivered" class="btn btn-outline-success">Deliver</a>
                                     </div>
-                                </div>
-                            </div>
+                                    <form action="/admin/delete_order/{{ order.id }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this order?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">No orders placed yet.</td>
+                            </tr>
                             {% endfor %}
-                        {% else %}
-                            <div class="text-center py-4 text-muted">
-                                <h5>No orders placed yet.</h5>
-                                <p class="small">Go to the storefront and place a test order to see it appear here.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Add Product & Inventory Summary -->
-            <div class="col-lg-4">
-                <!-- Add New Product Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="fw-bold mb-0">➕ Add Item to Catalog</h5>
-                    </div>
-                    <div class="card-body">
-                        <form action="/admin/add-product" method="POST">
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold">Item / Dish Name</label>
-                                <input type="text" name="name" class="form-control form-control-sm" required placeholder="e.g., Farm Fresh Apples / Paneer Tikka">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold">Category</label>
-                                <input type="text" name="category" class="form-control form-control-sm" required placeholder="e.g., Fruits, Dairy, Meals, Snacks">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold">Unit / Serving Size</label>
-                                <input type="text" name="unit" class="form-control form-control-sm" required placeholder="e.g., 1 kg, 500g, 1 Plate, 2 pcs">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold">Price (₹)</label>
-                                <input type="number" step="0.5" name="price" class="form-control form-control-sm" required placeholder="e.g., 120">
-                            </div>
-                            <button type="submit" class="btn btn-success btn-sm w-100 fw-semibold">
-                                + Save Item to Database
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Existing Items Quick List -->
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="fw-bold mb-0">📋 Current Inventory ({{ products|length }})</h6>
-                    </div>
-                    <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
-                        <ul class="list-group list-group-flush">
-                            {% for p in products %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                                <div>
-                                    <strong class="small">{{ p.name }}</strong><br>
-                                    <span class="badge bg-light text-dark border">{{ p.category }}</span>
-                                    <small class="text-muted">{{ p.unit }}</small>
-                                </div>
-                                <span class="fw-bold text-success small">₹{{ p.price }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
